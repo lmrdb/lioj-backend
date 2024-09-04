@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.yupi.lioj.common.ErrorCode;
 import com.yupi.lioj.constant.CommonConstant;
 import com.yupi.lioj.exception.BusinessException;
+import com.yupi.lioj.judge.JudgeService;
 import com.yupi.lioj.model.dto.question.QuestionQueryRequest;
 import com.yupi.lioj.model.dto.questionsubmit.QuestionSubmitAddRequest;
 import com.yupi.lioj.model.dto.questionsubmit.QuestionSubmitQueryRequest;
@@ -25,6 +26,7 @@ import com.yupi.lioj.service.UserService;
 import com.yupi.lioj.utils.SqlUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -32,16 +34,21 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 /**
-* @author 19799
-* @description 针对表【question_submit(题目提交)】的数据库操作Service实现
-* @createDate 2024-08-29 16:26:28
-*/
+ * @author 19799
+ * @description 针对表【question_submit(题目提交)】的数据库操作Service实现
+ * @createDate 2024-08-29 16:26:28
+ */
 @Service
 public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper, QuestionSubmit>
-    implements QuestionSubmitService{
+        implements QuestionSubmitService {
+
+    @Resource
+    @Lazy
+    private JudgeService judgeService;
 
     @Resource
     private QuestionService questionService;
@@ -61,8 +68,8 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
         // 检验编程语言是否合法/支持
         String language = questionSubmitAddRequest.getLanguage();
         QuestionSubmitLanguageEnum languageEnum = QuestionSubmitLanguageEnum.getEnumByValue(language);
-        if(languageEnum == null){
-            throw new BusinessException(ErrorCode.PARAMS_ERROR,"编程语言错误");
+        if (languageEnum == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "编程语言错误");
         }
 
         long questionId = questionSubmitAddRequest.getQuestionId();
@@ -84,10 +91,17 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
         questionSubmit.setJudgeInfo("{}");
         boolean save = this.save(questionSubmit);
         if (!save) {
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR,"插入数据失败");
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "插入数据失败");
         }
-        return questionSubmit.getId();
+        long questionSubmitId = questionSubmit.getId();
+        // 执行判题服务
+        CompletableFuture.runAsync(() -> {
+            judgeService.doJudge(questionSubmitId);
+        });
+
+        return questionSubmitId;
     }
+
     /**
      * 获取查询包装类（用户根据那些字段查询，根据前端传来的请求对象，得到mybatis框架支持的QueryWrapper类）
      *
@@ -112,13 +126,12 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
         queryWrapper.eq(StringUtils.isNotBlank(language), "language", language);
         queryWrapper.eq(ObjectUtils.isNotEmpty(userId), "userId", userId);
         queryWrapper.eq(ObjectUtils.isNotEmpty(questionId), "questionId", questionId);
-        queryWrapper.eq(QuestionSubmitStatusEnum.getEnumByValue(status)!=null, "status", status);
-        queryWrapper.eq("isDelete",false);
+        queryWrapper.eq(QuestionSubmitStatusEnum.getEnumByValue(status) != null, "status", status);
+        queryWrapper.eq("isDelete", false);
         queryWrapper.orderBy(SqlUtils.validSortField(sortField), sortOrder.equals(CommonConstant.SORT_ORDER_ASC),
                 sortField);
         return queryWrapper;
     }
-
 
 
     @Override
@@ -127,7 +140,7 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
         //脱敏 仅本人或管理员能看见（提交userI和用户id不同）提交代码的答案、代码
         long userId = loginUser.getId();
         //处理脱敏
-        if(userId!=questionSubmitVO.getUserId() && !userService.isAdmin(loginUser)){
+        if (userId != questionSubmitVO.getUserId() && !userService.isAdmin(loginUser)) {
             questionSubmitVO.setCode(null);
         }
 
