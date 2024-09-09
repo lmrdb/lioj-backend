@@ -2,7 +2,7 @@
 # @author <a href="https://github.com/liyupi">程序员鱼皮</a>
 # @from <a href="https://yupi.icu">编程导航知识星球</a>
 server:
-  port: 8101
+  port: 8121
 spring:
   # 数据库配置
   # todo 需替换配置
@@ -35,3 +35,6 @@ knife4j:
     enable: true
     username: root
     password: 123456
+#代码沙箱配置
+codesandbox:
+  type: example

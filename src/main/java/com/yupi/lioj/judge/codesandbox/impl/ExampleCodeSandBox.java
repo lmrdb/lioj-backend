@@ -17,7 +17,7 @@ public class ExampleCodeSandBox implements CodeSandBox {
     public ExecuteCodeResponse executeCode(ExecuteCodeRequest executeCodeRequest) {
 
 
-    ExecuteCodeResponse executeCodeResponse = new ExecuteCodeResponse();
+        ExecuteCodeResponse executeCodeResponse = new ExecuteCodeResponse();
         List<String> inputList = executeCodeRequest.getInputList();
         executeCodeResponse.setOutputList(inputList);
         executeCodeResponse.setMessage("测试执行成功");
@@ -28,7 +28,7 @@ public class ExampleCodeSandBox implements CodeSandBox {
         judgeInfo.setTime(100L);
 
         executeCodeResponse.setJudgeInfo(judgeInfo);
-        
+
         return executeCodeResponse;
     }
 }
