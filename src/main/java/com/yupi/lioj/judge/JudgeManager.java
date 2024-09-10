@@ -1,7 +1,7 @@
 package com.yupi.lioj.judge;
 
 import com.yupi.lioj.judge.strategy.DefaultJudgeStrategy;
-import com.yupi.lioj.judge.strategy.JAVAJudgeStrategy;
+import com.yupi.lioj.judge.strategy.JavaJudgeStrategy;
 import com.yupi.lioj.judge.strategy.JudgeContext;
 import com.yupi.lioj.judge.strategy.JudgeStrategy;
 import com.yupi.lioj.judge.codesandbox.model.JudgeInfo;
@@ -20,7 +20,7 @@ public class JudgeManager {
         String language = questionSubmit.getLanguage();
         JudgeStrategy judgeStrategy=new DefaultJudgeStrategy();
         if("java".equals(language)){
-            judgeStrategy=new JAVAJudgeStrategy();
+            judgeStrategy=new JavaJudgeStrategy();
         }
         return judgeStrategy.doJudge(judgeContext);
 

@@ -34,6 +34,7 @@ import javax.servlet.http.HttpServletRequest;
 @RestController
 @RequestMapping("/question_submit")
 @Slf4j
+@Deprecated
 public class QuestionSubmitController {
 
     @Resource
@@ -80,6 +81,5 @@ public class QuestionSubmitController {
         final User loginUser = userService.getLoginUser(request);
         return ResultUtils.success(questionSubmitService.getQuestionSubmitVOPage(questionSubmitPage, loginUser));
     }
-
 
 }
