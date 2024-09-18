@@ -25,8 +25,11 @@ public class RemoteCodeSandBox implements CodeSandBox {
     public ExecuteCodeResponse executeCode(ExecuteCodeRequest executeCodeRequest) {
 
         String url="http://localhost:8000/executeCode";
+        String dUrl="http://lioj.online:8000/executeCodeInDocker";
+        String rUrl="http://lioj.online:8000/executeCode";
+        String tUrl="http://192.168.8.128:8000/executeCodeInDocker";
         String json= JSONUtil.toJsonStr(executeCodeRequest);
-        String responseStr = HttpUtil.createPost(url)
+        String responseStr = HttpUtil.createPost(dUrl)
                 .header(AUTH_REQUEST_HEADER, AUTH_REQUEST_SECRET)
                 .body(json)
                 .execute()
@@ -36,7 +39,9 @@ public class RemoteCodeSandBox implements CodeSandBox {
                     "executeCode remoteSandBox error,message="+responseStr);
         }
 
-        System.out.println("远程代码沙箱");
+        System.out.println("远程代码沙箱"+dUrl);
         return JSONUtil.toBean(responseStr, ExecuteCodeResponse.class);
     }
+
+
 }
